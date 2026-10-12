@@ -1,0 +1,4 @@
+pyspark==4.0.1
+psycopg[binary]>=3.2,<4
+pyarrow>=17
+pytest>=8

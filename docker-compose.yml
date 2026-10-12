@@ -1,0 +1,33 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: shop
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./docker/init:/docker-entrypoint-initdb.d:ro
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d shop"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  pipeline:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy     # don't start until Postgres accepts connections
+    environment:
+      SOURCE_DSN: postgresql://postgres:postgres@postgres:5432/shop
+      WAREHOUSE_DSN: postgresql://postgres:postgres@postgres:5432/warehouse
+      LAKE_PATH: /app/lake
+    volumes:
+      - .:/app                         # your Windows folder appears at /app inside the container
+    working_dir: /app
+
+volumes:
+  pgdata:
